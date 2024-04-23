@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"bufio"
 )
 
 // storing available option
@@ -20,32 +21,40 @@ var files []string
 
 func main() {
 	// parse arguments
-	// fmt.Println(len(os.Args))
 	parseArguments()
+	wordCountExecute()
+}
+
+func wordCountExecute() {
 	if len(files) > 0 {
 		for _, filename := range files {
 			content, err := ioutil.ReadFile(filename)
 			if err != nil {
 				log.Fatalf("Error reading file: %v", err)
 			}
-			// fmt.Println("Content: ", string(content))
-			result := word_count(string(content))
+			result := wordCount(string(content))
 			printWordCount(result)
+			fmt.Print(" ", filename, "\n")
 		}
 	} else {
-
+		input := ""
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan(){
+			input += scanner.Text() + "\n"
+		}
+		if err := scanner.Err(); err != nil {
+			log.Fatalf("Error while scaning Standard Input: ", err)
+		}
+		result := wordCount(string(input))
+		printWordCount(result)
+		fmt.Print("\n")
 	}
-
-	// fmt.Println(options)
-	// fmt.Println("Options: ", options)
-	// fmt.Println("Files: ", files)
 }
 
 func parseArguments() {
 	if len(os.Args) == 1 {
 		return
 	}
-
 	for i := 1; i < len(os.Args); i++ {
 		// check argument
 		if !checkArg(os.Args[i]) {
@@ -54,7 +63,7 @@ func parseArguments() {
 	}
 }
 
-func check_file_exist(filePath string) bool {
+func checkFileExist(filePath string) bool {
 	if _, err := os.Stat(filePath); err == nil {
 		files = append(files, filePath)
 		return true
@@ -90,12 +99,12 @@ func checkArg(arg string) bool {
 			fmt.Println(arg, " Is not A Good Option")
 		}
 	default:
-		return (check_file_exist(arg))
+		return (checkFileExist(arg))
 	}
 	return false
 }
 
-func word_count(data string) map[string]int {
+func wordCount(data string) map[string]int {
 	var result = make(map[string]int)
 
 	if options["c"] {
@@ -126,14 +135,13 @@ func countChars(data string) int {
 
 func countLines(data string) int {
 	lines := strings.Split(data, "\n")
-	return len(lines)
+	return (len(lines) - 1)
 }
 
 func countWords(data string) int {
 	words := strings.Fields(data)
 	return len(words)
 }
-
 
 func printWordCount(result map[string]int) {
 	if val, ok := result["c"]; ok {
@@ -148,5 +156,4 @@ func printWordCount(result map[string]int) {
 	if val, ok := result["w"]; ok {
 		fmt.Print(val)
 	}
-	fmt.Print("\n")
 }
